@@ -8,7 +8,9 @@ _CALL_WINDOW = "month"
 
 
 def get_table():
-    config = Config(region_name=settings.aws_region, retries={"max_attempts": 3, "mode": "adaptive"})
+    config = Config(
+        region_name=settings.aws_region, retries={"max_attempts": 3, "mode": "adaptive"}
+    )
     kwargs: dict = {"config": config}
     if settings.dynamodb_endpoint_url:
         kwargs["endpoint_url"] = settings.dynamodb_endpoint_url
@@ -19,12 +21,14 @@ def get_table():
 
 def _now_iso() -> str:
     from datetime import datetime, timezone
+
     return datetime.now(timezone.utc).isoformat()
 
 
 # ---------------------------------------------------------------------------
 # API key records  PK: APIKEY#<key>  SK: META
 # ---------------------------------------------------------------------------
+
 
 def create_api_key(user_id: str, key: str, label: str) -> dict:
     table = get_table()
@@ -54,12 +58,18 @@ def get_api_key(key: str) -> dict | None:
     return resp.get("Item")
 
 
-def update_api_key_tier(key: str, tier: str, stripe_subscription_id: str | None) -> None:
+def update_api_key_tier(
+    key: str, tier: str, stripe_subscription_id: str | None
+) -> None:
     table = get_table()
     table.update_item(
         Key={"PK": f"APIKEY#{key}", "SK": "META"},
         UpdateExpression="SET Tier = :t, StripeSubscriptionId = :s, UpdatedAt = :u",
-        ExpressionAttributeValues={":t": tier, ":s": stripe_subscription_id, ":u": _now_iso()},
+        ExpressionAttributeValues={
+            ":t": tier,
+            ":s": stripe_subscription_id,
+            ":u": _now_iso(),
+        },
     )
 
 
@@ -76,6 +86,7 @@ def list_api_keys_for_user(user_id: str) -> list[dict]:
 # ---------------------------------------------------------------------------
 # Usage counters  PK: USAGE#<key>#<year-month>  SK: COUNT
 # ---------------------------------------------------------------------------
+
 
 def increment_call_count(key: str, year_month: str) -> int:
     """Atomically increment and return the new call count for key in given month."""
@@ -100,7 +111,14 @@ def get_call_count(key: str, year_month: str) -> int:
 # Subscription records  PK: USER#<user_id>  SK: SUBSCRIPTION
 # ---------------------------------------------------------------------------
 
-def upsert_subscription(user_id: str, tier: str, stripe_customer_id: str, stripe_subscription_id: str | None, status: str) -> dict:
+
+def upsert_subscription(
+    user_id: str,
+    tier: str,
+    stripe_customer_id: str,
+    stripe_subscription_id: str | None,
+    status: str,
+) -> dict:
     table = get_table()
     now = _now_iso()
     item = {

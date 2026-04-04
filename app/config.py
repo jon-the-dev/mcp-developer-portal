@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     # Stripe
     stripe_secret_key: str | None = None
     stripe_webhook_secret: str | None = None
-    stripe_free_price_id: str | None = None   # $0/month
-    stripe_pro_price_id: str | None = None    # unlimited calls flat rate
+    stripe_free_price_id: str | None = None  # $0/month
+    stripe_pro_price_id: str | None = None  # unlimited calls flat rate
 
     # Tier limits
     free_tier_monthly_calls: int = 1000
