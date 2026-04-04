@@ -4,9 +4,8 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import FastAPI, Header, HTTPException, Request, status
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -155,7 +154,7 @@ async def subscribe_pro(body: CreateSubscriptionRequest) -> SubscriptionResponse
 
     customer_id = billing.create_customer(body.user_id, body.email)
     result = billing.create_pro_subscription(customer_id)
-    record = db.upsert_subscription(
+    db.upsert_subscription(
         body.user_id,
         tier="pro",
         stripe_customer_id=customer_id,
