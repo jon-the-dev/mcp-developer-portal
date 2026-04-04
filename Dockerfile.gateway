@@ -1,0 +1,23 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml ./
+RUN pip install --no-cache-dir ".[gateway]"
+
+COPY gateway ./gateway
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -sf http://localhost:8080/health || exit 1
+
+# Environment variable reference (set at deploy time):
+#   BILLING_SERVICE_URL      URL of the billing/portal service
+#   BACKEND_SERVERS_JSON     JSON map of server-name -> backend URL
+#   MCP_BACKEND_<NAME>       Per-server override, e.g. MCP_BACKEND_DOMAIN_LOOKUP=http://...
+#   UPSTREAM_TIMEOUT         Proxy timeout in seconds (default: 30)
+
+CMD ["uvicorn", "gateway.app:app", "--host", "0.0.0.0", "--port", "8080"]
