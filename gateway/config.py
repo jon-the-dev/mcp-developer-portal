@@ -46,7 +46,7 @@ class GatewaySettings(BaseSettings):
         prefix = "MCP_BACKEND_"
         for key, val in os.environ.items():
             if key.startswith(prefix) and val:
-                server_name = key[len(prefix):].lower().replace("_", "-")
+                server_name = key[len(prefix) :].lower().replace("_", "-")
                 servers[server_name] = val
         return servers
 

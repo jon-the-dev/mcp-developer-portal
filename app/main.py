@@ -16,7 +16,6 @@ import secrets
 from app.config import settings
 from app import billing, db
 
-
 limiter = Limiter(key_func=get_remote_address)
 
 
@@ -49,6 +48,7 @@ async def health() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Gateway middleware endpoint — called by MCP gateway on every request
 # ---------------------------------------------------------------------------
+
 
 class GatewayCheckRequest(BaseModel):
     api_key: str
@@ -86,6 +86,7 @@ async def gateway_check(body: GatewayCheckRequest) -> GatewayCheckResponse:
 # ---------------------------------------------------------------------------
 # API Key management
 # ---------------------------------------------------------------------------
+
 
 class CreateApiKeyRequest(BaseModel):
     user_id: str
@@ -133,6 +134,7 @@ async def list_api_keys(user_id: str) -> list[ApiKeyResponse]:
 # Billing / Subscription
 # ---------------------------------------------------------------------------
 
+
 class CreateSubscriptionRequest(BaseModel):
     user_id: str
     email: str
@@ -145,11 +147,17 @@ class SubscriptionResponse(BaseModel):
     stripe_subscription_id: str | None = None
 
 
-@app.post("/v1/billing/subscribe/pro", response_model=SubscriptionResponse, status_code=201)
+@app.post(
+    "/v1/billing/subscribe/pro", response_model=SubscriptionResponse, status_code=201
+)
 async def subscribe_pro(body: CreateSubscriptionRequest) -> SubscriptionResponse:
     """Upgrade a user to the Pro (unlimited) tier."""
     existing = db.get_subscription(body.user_id)
-    if existing and existing.get("Status") == "active" and existing.get("Tier") == "pro":
+    if (
+        existing
+        and existing.get("Status") == "active"
+        and existing.get("Tier") == "pro"
+    ):
         raise HTTPException(status_code=409, detail="Already on Pro tier")
 
     customer_id = billing.create_customer(body.user_id, body.email)
@@ -196,7 +204,14 @@ async def get_usage(user_id: str) -> dict:
     for k in keys:
         count = db.get_call_count(k["Key"], year_month)
         total += count
-        usage.append({"key": k["Key"][:12] + "...", "label": k["Label"], "calls": count, "tier": k["Tier"]})
+        usage.append(
+            {
+                "key": k["Key"][:12] + "...",
+                "label": k["Label"],
+                "calls": count,
+                "tier": k["Tier"],
+            }
+        )
     return {
         "user_id": user_id,
         "year_month": year_month,
@@ -212,6 +227,7 @@ async def stripe_webhook(
     stripe_signature: str = Header(alias="stripe-signature"),
 ) -> dict:
     import logging
+
     logger = logging.getLogger(__name__)
     payload = await request.body()
     try:

@@ -85,4 +85,6 @@ def cancel_subscription(stripe_subscription_id: str) -> None:
 def construct_webhook_event(payload: bytes, sig_header: str) -> stripe.Event:
     if not settings.stripe_webhook_secret:
         raise RuntimeError("STRIPE_WEBHOOK_SECRET not configured")
-    return stripe.Webhook.construct_event(payload, sig_header, settings.stripe_webhook_secret)
+    return stripe.Webhook.construct_event(
+        payload, sig_header, settings.stripe_webhook_secret
+    )

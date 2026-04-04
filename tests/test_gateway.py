@@ -13,7 +13,6 @@ from fastapi.testclient import TestClient
 from gateway.app import app
 from gateway.config import GatewaySettings, get_gateway_settings
 
-
 # ---------------------------------------------------------------------------
 # Test settings
 # ---------------------------------------------------------------------------
@@ -66,7 +65,13 @@ def test_missing_api_key_returns_401(client):
 def test_api_key_via_bearer(client, respx_mock):
     respx_mock.post("http://billing-svc/v1/gateway/check").mock(
         return_value=httpx.Response(
-            200, json={"allowed": True, "tier": "free", "calls_this_month": 1, "limit": 1000}
+            200,
+            json={
+                "allowed": True,
+                "tier": "free",
+                "calls_this_month": 1,
+                "limit": 1000,
+            },
         )
     )
     respx_mock.post("http://mcp-backend/mcp").mock(
@@ -83,7 +88,13 @@ def test_api_key_via_bearer(client, respx_mock):
 def test_api_key_via_x_api_key_header(client, respx_mock):
     respx_mock.post("http://billing-svc/v1/gateway/check").mock(
         return_value=httpx.Response(
-            200, json={"allowed": True, "tier": "pro", "calls_this_month": -1, "limit": None}
+            200,
+            json={
+                "allowed": True,
+                "tier": "pro",
+                "calls_this_month": -1,
+                "limit": None,
+            },
         )
     )
     respx_mock.post("http://mcp-backend/mcp").mock(
@@ -106,7 +117,12 @@ def test_rate_limited_returns_429(client, respx_mock):
     respx_mock.post("http://billing-svc/v1/gateway/check").mock(
         return_value=httpx.Response(
             200,
-            json={"allowed": False, "tier": "free", "calls_this_month": 1000, "limit": 1000},
+            json={
+                "allowed": False,
+                "tier": "free",
+                "calls_this_month": 1000,
+                "limit": 1000,
+            },
         )
     )
     resp = client.post(
@@ -138,7 +154,13 @@ def test_invalid_key_returns_401(client, respx_mock):
 def test_unknown_server_returns_404(client, respx_mock):
     respx_mock.post("http://billing-svc/v1/gateway/check").mock(
         return_value=httpx.Response(
-            200, json={"allowed": True, "tier": "free", "calls_this_month": 0, "limit": 1000}
+            200,
+            json={
+                "allowed": True,
+                "tier": "free",
+                "calls_this_month": 0,
+                "limit": 1000,
+            },
         )
     )
     resp = client.post(
@@ -153,11 +175,19 @@ def test_unknown_server_returns_404(client, respx_mock):
 def test_proxy_passes_body_and_returns_upstream_status(client, respx_mock):
     respx_mock.post("http://billing-svc/v1/gateway/check").mock(
         return_value=httpx.Response(
-            200, json={"allowed": True, "tier": "free", "calls_this_month": 5, "limit": 1000}
+            200,
+            json={
+                "allowed": True,
+                "tier": "free",
+                "calls_this_month": 5,
+                "limit": 1000,
+            },
         )
     )
     respx_mock.post("http://mcp-backend/mcp/tools/call").mock(
-        return_value=httpx.Response(200, json={"content": [{"type": "text", "text": "hello"}]})
+        return_value=httpx.Response(
+            200, json={"content": [{"type": "text", "text": "hello"}]}
+        )
     )
     resp = client.post(
         "/test-server/mcp/tools/call",
@@ -182,7 +212,13 @@ def test_billing_service_down_returns_503(client, respx_mock):
 def test_gateway_tier_header_in_response(client, respx_mock):
     respx_mock.post("http://billing-svc/v1/gateway/check").mock(
         return_value=httpx.Response(
-            200, json={"allowed": True, "tier": "pro", "calls_this_month": -1, "limit": None}
+            200,
+            json={
+                "allowed": True,
+                "tier": "pro",
+                "calls_this_month": -1,
+                "limit": None,
+            },
         )
     )
     respx_mock.post("http://mcp-backend/mcp").mock(

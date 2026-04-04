@@ -121,7 +121,13 @@ async def proxy_to_mcp_server(
     # 6. Proxy — stream SSE, otherwise buffer
     if "text/event-stream" in accept:
         return StreamingResponse(
-            _stream_upstream(request.method, upstream_url, forward_headers, body, settings.upstream_timeout),
+            _stream_upstream(
+                request.method,
+                upstream_url,
+                forward_headers,
+                body,
+                settings.upstream_timeout,
+            ),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -140,7 +146,9 @@ async def proxy_to_mcp_server(
             )
         except httpx.RequestError as exc:
             logger.error("Upstream %s error: %s", upstream_url, exc)
-            raise HTTPException(status_code=502, detail=f"Backend '{server_name}' unreachable")
+            raise HTTPException(
+                status_code=502, detail=f"Backend '{server_name}' unreachable"
+            )
 
     return Response(
         content=resp.content,
@@ -166,7 +174,8 @@ async def _billing_check(api_key: str, billing_url: str) -> dict[str, Any]:
         except httpx.RequestError as exc:
             logger.error("Billing service unreachable: %s", exc)
             raise HTTPException(
-                status_code=503, detail="Gateway billing service temporarily unavailable"
+                status_code=503,
+                detail="Gateway billing service temporarily unavailable",
             )
 
     if resp.status_code == 200:
@@ -187,7 +196,9 @@ async def _stream_upstream(
     """Yield chunks from an SSE upstream response."""
     async with httpx.AsyncClient(timeout=timeout) as client:
         try:
-            async with client.stream(method, url, headers=headers, content=body) as resp:
+            async with client.stream(
+                method, url, headers=headers, content=body
+            ) as resp:
                 async for chunk in resp.aiter_bytes(chunk_size=256):
                     yield chunk
         except httpx.RequestError as exc:
