@@ -20,7 +20,7 @@ from gateway.config import GatewaySettings, get_gateway_settings
 
 TEST_SETTINGS = GatewaySettings(
     billing_service_url="http://billing-svc",
-    backend_servers_json={test-server: http://mcp-backend},
+    backend_servers_json='{"test-server": "http://mcp-backend"}',
     upstream_timeout=5.0,
 )
 
